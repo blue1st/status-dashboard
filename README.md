@@ -6,6 +6,9 @@
 
 CIで定期的に更新されるスタティックファイルによるダッシュボードシステムです。
 
+**[Live Demo 🚀](https://blue1st.github.io/status-dashboard/)**
+
+
 ## 特徴
 - **YAMLによる設定**: `config.yml` で監視対象のサービスを管理
 - **依存関係の可視化**: サービス間の連携を `depends_on` で定義し、Mermaid.js で自動図示（Service Map）
