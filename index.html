@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
     <style>
         :root {
             --bg: #0a0a0c;
@@ -496,20 +497,57 @@
             color: white;
         }
 
+        .mermaid {
+            background: transparent !important;
+            cursor: grab;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mermaid:active {
+            cursor: grabbing;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .control-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
         #service-map-container {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 1.5rem;
-            padding: 2rem;
-            min-height: 500px;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-        }
-
-        .mermaid {
-            background: transparent !important;
-            cursor: pointer;
+            padding: 0; /* Changed from 2rem to 0 to allow pan/zoom to edges */
+            height: 700px;
+            overflow: hidden; /* Important for svg-pan-zoom */
+            position: relative;
         }
 
         @media (max-width: 768px) {
@@ -555,6 +593,29 @@
         </div>
 
         <div id="map-view" class="view-content">
+            <div class="map-controls">
+                <button class="control-btn" id="zoom-in" title="Zoom In">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                    Zoom In
+                </button>
+                <button class="control-btn" id="zoom-out" title="Zoom Out">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                    Zoom Out
+                </button>
+                <button class="control-btn" id="zoom-reset" title="Reset Zoom">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Reset
+                </button>
+                <div style="flex: 1"></div>
+                <button class="control-btn" id="export-svg" title="Export as SVG">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    SVG
+                </button>
+                <button class="control-btn" id="export-png" title="Export as PNG">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    PNG
+                </button>
+            </div>
             <div id="service-map-container">
                 <div class="mermaid" id="mermaid-graph">
                     graph TD
@@ -596,6 +657,7 @@
         let servicesData = [];
         let currentFilter = 'all';
         let searchQuery = '';
+        let panZoomInstance = null;
 
         mermaid.initialize({
             startOnLoad: false,
@@ -837,12 +899,126 @@
             graphContainer.textContent = mermaidCode;
             
             try {
+                if (panZoomInstance) {
+                    try {
+                        panZoomInstance.destroy();
+                    } catch (e) {
+                        console.warn("Error destroying panZoomInstance:", e);
+                    }
+                    panZoomInstance = null;
+                }
+
                 await mermaid.run({
                     nodes: [graphContainer]
                 });
+
+                // Initialize Pan/Zoom
+                const svgElement = graphContainer.querySelector('svg');
+                if (svgElement) {
+                    svgElement.style.width = '100%';
+                    svgElement.style.height = '100%';
+                    svgElement.style.maxWidth = 'none';
+
+                    panZoomInstance = svgPanZoom(svgElement, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: false,
+                        fit: true,
+                        center: true,
+                        minZoom: 0.1,
+                        maxZoom: 10,
+                        zoomScaleSensitivity: 0.2
+                    });
+
+                    // Hook up controls
+                    document.getElementById('zoom-in').onclick = () => panZoomInstance.zoomIn();
+                    document.getElementById('zoom-out').onclick = () => panZoomInstance.zoomOut();
+                    document.getElementById('zoom-reset').onclick = () => {
+                        panZoomInstance.reset();
+                        panZoomInstance.fit();
+                        panZoomInstance.center();
+                    };
+                    document.getElementById('export-svg').onclick = exportMapAsSVG;
+                    document.getElementById('export-png').onclick = exportMapAsPNG;
+                }
             } catch (e) {
                 console.error("Mermaid render failed", e);
             }
+        }
+
+        function exportMapAsSVG() {
+            const svgElement = document.querySelector('#mermaid-graph svg');
+            if (!svgElement) return;
+
+            // Clone the SVG to modify it for export
+            const clone = svgElement.cloneNode(true);
+            
+            // Remove pan-zoom attributes and elements if any
+            clone.removeAttribute('style');
+            const viewport = clone.querySelector('.svg-pan-zoom_viewport');
+            if (viewport) {
+                // If it's wrapped by svg-pan-zoom, we want the content without the transform
+                // Or better, just grab the original SVG content before pan-zoom if possible.
+                // But since it's already modified, let's just reset the transform.
+                viewport.removeAttribute('transform');
+            }
+
+            const serializer = new XMLSerializer();
+            const source = serializer.serializeToString(clone);
+            const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `status-map-${new Date().getTime()}.svg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        async function exportMapAsPNG() {
+            const svgElement = document.querySelector('#mermaid-graph svg');
+            if (!svgElement) return;
+
+            const clone = svgElement.cloneNode(true);
+            // Reset transform for export
+            const viewport = clone.querySelector('.svg-pan-zoom_viewport');
+            if (viewport) viewport.removeAttribute('transform');
+
+            const svgData = new XMLSerializer().serializeToString(clone);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Get dimensions
+            const bbox = svgElement.getBBox();
+            const width = bbox.width + 40;
+            const height = bbox.height + 40;
+            
+            canvas.width = width * 2; // Higher DPI
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+            
+            // Fill background
+            ctx.fillStyle = '#141417'; // Match dashboard background
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const img = new Image();
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = () => {
+                ctx.drawImage(img, 20, 20, bbox.width, bbox.height);
+                const pngUrl = canvas.toDataURL('image/png');
+                
+                const link = document.createElement('a');
+                link.href = pngUrl;
+                link.download = `status-map-${new Date().getTime()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
         }
 
         function showModal(serviceId) {
