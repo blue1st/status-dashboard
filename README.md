@@ -43,8 +43,8 @@ npm run dev
 `config.yml` の各サービスに `depends_on: ["service-id"]` を記述することで、サービスマップ上に連携図が表示されます。
 
 ### 4. CI/CDの設定
-`.github/workflows/status-check.yml` が15分ごとにチェックを実行し、GitHub Pages にデプロイするように設定されています。
-GitHubリポジトリの Settings > Pages から、ソースを `GitHub Actions` に設定してください。
+`.github/workflows/status-check.yml` が定期的にチェックを実行し、ダッシュボードを自動更新します。
+詳細な設定手順については [docs/CI_DEPLOYMENT.md](./docs/CI_DEPLOYMENT.md) を参照してください。
 
 ### 5. AIによる拡張
 このリポジトリはAIアシスタント（Cursor, GitHub Copilot, Antigravityなど）による拡張を想定しています。
