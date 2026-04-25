@@ -519,6 +519,24 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
+        .filter-chip.error-toggle {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .filter-chip.error-toggle:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--accent-down);
+        }
+
+        .filter-chip.error-toggle.active {
+            background: var(--accent-down);
+            border-color: var(--accent-down);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
         .mermaid {
             background: transparent !important;
             cursor: grab;
@@ -678,6 +696,7 @@
     <script>
         let servicesData = [];
         let currentFilter = 'all';
+        let showErrorsOnly = false;
         let searchQuery = '';
         let panZoomInstance = null;
 
@@ -719,33 +738,50 @@
 
         function renderFilters() {
             const categories = [...new Set(servicesData.map(s => s.category))];
+            const errorCount = servicesData.filter(s => s.status === 'DOWN').length;
             const filterContainer = document.getElementById('filters');
             if (!filterContainer) return;
 
             filterContainer.innerHTML = '';
             
+            // All Services
             const allBtn = document.createElement('button');
-            allBtn.className = `filter-chip ${currentFilter === 'all' ? 'active' : ''}`;
+            allBtn.className = `filter-chip ${currentFilter === 'all' && !showErrorsOnly ? 'active' : ''}`;
             allBtn.textContent = 'All Services';
-            allBtn.dataset.category = 'all';
             allBtn.onclick = () => {
-                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                allBtn.classList.add('active');
                 currentFilter = 'all';
+                showErrorsOnly = false;
+                renderFilters();
                 renderServices();
                 renderMap();
             };
             filterContainer.appendChild(allBtn);
 
+            // Errors Only Toggle
+            if (errorCount > 0) {
+                const errorBtn = document.createElement('button');
+                errorBtn.className = `filter-chip error-toggle ${showErrorsOnly ? 'active' : ''}`;
+                errorBtn.innerHTML = `Errors <span style="background: rgba(0,0,0,0.2); padding: 0.1rem 0.4rem; border-radius: 10px; font-size: 0.75rem; margin-left: 0.4rem;">${errorCount}</span>`;
+                errorBtn.onclick = () => {
+                    showErrorsOnly = !showErrorsOnly;
+                    renderFilters();
+                    renderServices();
+                    renderMap();
+                };
+                filterContainer.appendChild(errorBtn);
+            }
+
+            // Categories
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `filter-chip ${currentFilter === cat ? 'active' : ''}`;
                 btn.textContent = cat;
                 btn.dataset.category = cat;
                 btn.onclick = () => {
-                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                    btn.classList.add('active');
                     currentFilter = cat;
+                    // If we select a category, we might want to keep the error filter? 
+                    // Let's make it work together.
+                    renderFilters();
                     renderServices();
                     renderMap();
                 };
@@ -800,7 +836,8 @@
                 const matchesSearch = s.name.toLowerCase().includes(searchQuery) || 
                                      s.tags.some(t => t.toLowerCase().includes(searchQuery)) ||
                                      s.category.toLowerCase().includes(searchQuery);
-                return matchesFilter && matchesSearch;
+                const matchesErrors = !showErrorsOnly || s.status === 'DOWN';
+                return matchesFilter && matchesErrors && matchesSearch;
             });
 
             filtered.forEach(service => {
@@ -862,7 +899,8 @@
                 const matchesSearch = s.name.toLowerCase().includes(searchQuery) || 
                                      s.tags.some(t => t.toLowerCase().includes(searchQuery)) ||
                                      s.category.toLowerCase().includes(searchQuery);
-                return matchesFilter && matchesSearch;
+                const matchesErrors = !showErrorsOnly || s.status === 'DOWN';
+                return matchesFilter && matchesErrors && matchesSearch;
             });
 
             const filteredIds = new Set(filtered.map(s => s.id));
