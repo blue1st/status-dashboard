@@ -17,7 +17,7 @@
       ],
       "status": "DOWN",
       "message": "Failed to connect to https://example.com",
-      "lastCheck": "2026-04-25T16:10:46.097Z"
+      "lastCheck": "2026-04-25T16:15:51.209Z"
     },
     {
       "id": "api-server",
@@ -37,7 +37,7 @@
       ],
       "status": "UP",
       "message": "Dummy check: UP",
-      "lastCheck": "2026-04-25T16:10:46.100Z"
+      "lastCheck": "2026-04-25T16:15:51.212Z"
     },
     {
       "id": "database",
@@ -54,7 +54,7 @@
       "depends_on": [],
       "status": "UP",
       "message": "Dummy check: UP",
-      "lastCheck": "2026-04-25T16:10:46.103Z"
+      "lastCheck": "2026-04-25T16:15:51.215Z"
     },
     {
       "id": "storage",
@@ -71,7 +71,7 @@
       "depends_on": [],
       "status": "UP",
       "message": "Dummy check: UP",
-      "lastCheck": "2026-04-25T16:10:46.106Z"
+      "lastCheck": "2026-04-25T16:15:51.217Z"
     },
     {
       "id": "redis",
@@ -88,7 +88,7 @@
       "depends_on": [],
       "status": "UP",
       "message": "Dummy check: UP",
-      "lastCheck": "2026-04-25T16:10:46.108Z"
+      "lastCheck": "2026-04-25T16:15:51.220Z"
     },
     {
       "id": "legacy-api",
@@ -106,7 +106,7 @@
       ],
       "status": "NONE",
       "message": "Dummy check: NONE (Skipped/Not Applicable)",
-      "lastCheck": "2026-04-25T16:10:46.110Z"
+      "lastCheck": "2026-04-25T16:15:51.222Z"
     },
     {
       "id": "maintenance-db",
@@ -123,8 +123,8 @@
       "depends_on": [],
       "status": "NONE",
       "message": "No check configured",
-      "lastCheck": "2026-04-25T16:10:46.110Z"
+      "lastCheck": "2026-04-25T16:15:51.222Z"
     }
   ],
-  "updatedAt": "2026-04-25T16:10:46.110Z"
+  "updatedAt": "2026-04-25T16:15:51.222Z"
 }
