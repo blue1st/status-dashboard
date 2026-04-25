@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="StatusPress Logo" width="200">
+</p>
+
 # StatusPress 🚀
 
 CIで定期的に更新されるスタティックファイルによるダッシュボードシステムです。
