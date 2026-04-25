@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StatusPress | Service Dashboard</title>
+    <meta name="description" content="Real-time status monitoring for our critical services.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: #141417;
+            --card-border: #232327;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-up: #10b981;
+            --accent-down: #ef4444;
+            --accent-warn: #f59e0b;
+            --accent-none: #64748b;
+            --font-main: 'Inter', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --glass: rgba(20, 20, 23, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 4rem;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .last-updated {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: white;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #3b82f6;
+        }
+
+        .view-content {
+            display: none;
+        }
+
+        .view-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .service-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            margin-right: 0.75rem;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+            transition: transform 0.3s;
+        }
+
+        .status-card:hover .service-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .name-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-card.highlight {
+            animation: highlight-pulse 2s ease-out;
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        @keyframes highlight-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            30% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .status-card.down {
+            border-left: 4px solid var(--accent-down);
+        }
+
+        .status-card.up {
+            border-left: 4px solid var(--accent-up);
+        }
+
+        .status-card.none {
+            border-left: 4px solid var(--accent-none);
+            opacity: 0.8;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .service-name {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .up .dot {
+            background-color: var(--accent-up);
+            box-shadow: 0 0 12px var(--accent-up);
+            animation: pulse 2s infinite;
+        }
+
+        .down .dot {
+            background-color: var(--accent-down);
+            box-shadow: 0 0 12px var(--accent-down);
+        }
+
+        .none .dot {
+            background-color: var(--accent-none);
+            box-shadow: 0 0 8px var(--accent-none);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .service-desc {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            margin-bottom: 1.25rem;
+            /* Allow markdown content but keep it constrained if it's just text */
+        }
+
+        .service-desc p {
+            margin-bottom: 0.5rem;
+        }
+
+        .service-desc > *:last-child {
+            margin-bottom: 0;
+        }
+
+        .service-desc a, .modal-content a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .service-desc a:hover, .modal-content a:hover {
+            text-decoration: underline;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .category {
+            font-size: 0.7rem;
+            color: #3b82f6;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .dependency-list {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
+            margin-bottom: 1.25rem;
+        }
+
+        .dependency-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .dep-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .dep-tag {
+            font-size: 0.7rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dep-tag:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #60a5fa;
+        }
+
+        .recovery-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .recovery-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-secondary);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            width: 90%;
+            max-width: 600px;
+            padding: 2.5rem;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .recovery-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            color: #fca5a5;
+            font-size: 0.9rem;
+        }
+
+        .recovery-box p {
+            margin-bottom: 0.75rem;
+        }
+
+        .recovery-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .recovery-box code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .recovery-box pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .recovery-box ul, .recovery-box ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .recovery-box li {
+            margin-bottom: 0.25rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .search-container {
+            margin-bottom: 1.25rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            color: white;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        #service-map-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            min-height: 500px;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mermaid {
+            background: transparent !important;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>StatusPress</h1>
+                <p style="color: var(--text-secondary)">System Status & Infrastructure Dashboard</p>
+            </div>
+            <div id="last-updated" class="last-updated">Updating...</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="search" class="search-input" placeholder="Search services, tags, or categories...">
+        </div>
+
+        <div id="filters" class="filter-tags">
+            <button class="filter-chip active" data-category="all">All Services</button>
+        </div>
+
+        <div class="view-tabs">
+            <button class="tab-btn active" data-view="grid">Grid View</button>
+            <button class="tab-btn" data-view="map">Service Map</button>
+        </div>
+
+        <div id="grid-view" class="view-content active">
+            <div id="services-grid" class="stats-grid">
+                <!-- Services will be injected here -->
+            </div>
+        </div>
+
+        <div id="map-view" class="view-content">
+            <div id="service-map-container">
+                <div class="mermaid" id="mermaid-graph">
+                    graph TD
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for recovery info -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+            <div class="category" id="modal-category"></div>
+            <h2 class="modal-title" id="modal-title">Service Name</h2>
+            <div class="modal-section">
+                <div class="section-label">Description</div>
+                <div id="modal-desc" class="service-desc" style="color: var(--text-secondary)"></div>
+            </div>
+            <div class="modal-section">
+                <div class="section-label">Current Status</div>
+                <div id="modal-status"></div>
+            </div>
+            <div class="modal-section">
+                <div class="section-label">Recovery Procedure</div>
+                <div class="recovery-box" id="modal-recovery"></div>
+            </div>
+            <div class="modal-section" id="modal-dependencies-section">
+                <div class="section-label">Depends On</div>
+                <div class="dep-tags" id="modal-dependencies"></div>
+            </div>
+            <div class="modal-section">
+                <div class="section-label">Check Message</div>
+                <p id="modal-message" style="font-family: monospace; font-size: 0.875rem; color: var(--text-secondary)"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let servicesData = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Global function for Mermaid click callbacks
+        window.handleMermaidClick = (serviceId) => {
+            // Find serviceId from sanitized sid
+            const service = servicesData.find(s => s.id.replace(/-/g, '_') === serviceId);
+            if (service) showModal(service.id);
+        };
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch('data/status.json');
+                const data = await response.json();
+                servicesData = data.services;
+                
+                document.getElementById('last-updated').textContent = `Last check: ${new Date(data.updatedAt).toLocaleString()}`;
+                
+                renderFilters();
+                renderServices();
+                renderMap();
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                const grid = document.getElementById('services-grid');
+                if (grid) grid.innerHTML = '<p>Error loading status data.</p>';
+            }
+        }
+
+        function renderFilters() {
+            const categories = [...new Set(servicesData.map(s => s.category))];
+            const filterContainer = document.getElementById('filters');
+            if (!filterContainer) return;
+
+            filterContainer.innerHTML = '';
+            
+            const allBtn = document.createElement('button');
+            allBtn.className = `filter-chip ${currentFilter === 'all' ? 'active' : ''}`;
+            allBtn.textContent = 'All Services';
+            allBtn.dataset.category = 'all';
+            allBtn.onclick = () => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                allBtn.classList.add('active');
+                currentFilter = 'all';
+                renderServices();
+                renderMap();
+            };
+            filterContainer.appendChild(allBtn);
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `filter-chip ${currentFilter === cat ? 'active' : ''}`;
+                btn.textContent = cat;
+                btn.dataset.category = cat;
+                btn.onclick = () => {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = cat;
+                    renderServices();
+                    renderMap();
+                };
+                filterContainer.appendChild(btn);
+            });
+        }
+
+
+
+        function getServiceIconUrl(service) {
+            let iconSlug = service.icon || service.provider;
+            if (!iconSlug) return null;
+
+            iconSlug = iconSlug.toLowerCase();
+
+            const slugMap = {
+                'aws': 'amazonaws',
+                'gcp': 'googlecloud',
+                's3': 'amazonaws',
+                'spanner': 'googlecloudspanner',
+                'cloudrun': 'googlecloud',
+                'amazons3': 'amazonaws',
+                'googlecloudrun': 'googlecloud',
+                'googlecloudspanner': 'googlecloudspanner'
+            };
+
+            const finalSlug = slugMap[iconSlug] || iconSlug;
+
+            const colors = {
+                'amazonaws': 'FF9900',
+                'googlecloud': '4285F4',
+                'googlecloudrun': '4285F4',
+                'googlecloudspanner': '4285F4',
+                'vercel': 'FFFFFF',
+                'github': 'FFFFFF',
+                'redis': 'DC382D',
+                'postgresql': '4169E1',
+                'mongodb': '47A248'
+            };
+
+            const color = colors[finalSlug] || '94a3b8';
+            return `https://cdn.simpleicons.org/${finalSlug}/${color}`;
+        }
+
+        function renderServices() {
+            const grid = document.getElementById('services-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const filtered = servicesData.filter(s => {
+                const matchesFilter = currentFilter === 'all' || s.category === currentFilter;
+                const matchesSearch = s.name.toLowerCase().includes(searchQuery) || 
+                                     s.tags.some(t => t.toLowerCase().includes(searchQuery)) ||
+                                     s.category.toLowerCase().includes(searchQuery);
+                return matchesFilter && matchesSearch;
+            });
+
+            filtered.forEach(service => {
+                const card = document.createElement('div');
+                card.id = `card-${service.id}`;
+                card.className = `status-card ${service.status.toLowerCase()}`;
+                
+                let depHtml = '';
+                if (service.depends_on && service.depends_on.length > 0) {
+                    depHtml = `
+                        <div class="dependency-list">
+                            <div class="dependency-title">Depends on</div>
+                            <div class="dep-tags">
+                                ${service.depends_on.map(depId => {
+                                    const dep = servicesData.find(s => s.id === depId);
+                                    return `<span class="dep-tag" onclick="jumpToService('${depId}', event)">${dep ? dep.name : depId}</span>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const iconUrl = getServiceIconUrl(service);
+                const iconHtml = iconUrl ? `<img src="${iconUrl}" class="service-icon" alt="${service.provider || service.icon}">` : '';
+
+                card.innerHTML = `
+                    <div class="category">${service.category}</div>
+                    <div class="card-header">
+                        <div class="name-container">
+                            ${iconHtml}
+                            <div class="service-name">${service.name}</div>
+                        </div>
+                        <div class="status-indicator">
+                            <span class="dot"></span>
+                            ${service.status}
+                        </div>
+                    </div>
+                    <div class="service-desc">${marked.parse(service.description)}</div>
+                    <div class="tags">
+                        ${service.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                    </div>
+                    ${depHtml}
+                    <button class="recovery-btn" onclick="showModal('${service.id}')">View Recovery Steps</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function renderMap() {
+            const graphContainer = document.getElementById('mermaid-graph');
+            if (!graphContainer) return;
+
+            const sanitize = (id) => id.replace(/-/g, '_');
+            const escapeLabel = (text) => text.replace(/"/g, '&quot;');
+
+            // Use the same filtering logic as renderServices
+            const filtered = servicesData.filter(s => {
+                const matchesFilter = currentFilter === 'all' || s.category === currentFilter;
+                const matchesSearch = s.name.toLowerCase().includes(searchQuery) || 
+                                     s.tags.some(t => t.toLowerCase().includes(searchQuery)) ||
+                                     s.category.toLowerCase().includes(searchQuery);
+                return matchesFilter && matchesSearch;
+            });
+
+            const filteredIds = new Set(filtered.map(s => s.id));
+
+            let mermaidCode = 'graph LR\n'; // Changed to LR for better flow visibility
+            mermaidCode += '  classDef upNode fill:#141417,stroke:#10b981,stroke-width:2px,color:#fff\n';
+            mermaidCode += '  classDef downNode fill:#141417,stroke:#ef4444,stroke-width:2px,color:#fff\n';
+            mermaidCode += '  classDef noneNode fill:#141417,stroke:#64748b,stroke-width:2px,color:#fff\n\n';
+            
+            // Group services by category
+            const categories = {};
+            filtered.forEach(s => {
+                if (!categories[s.category]) {
+                    categories[s.category] = [];
+                }
+                categories[s.category].push(s);
+            });
+
+            // Render each category as a subgraph
+            Object.entries(categories).forEach(([category, services]) => {
+                const clusterId = `cluster_${sanitize(category)}`;
+                mermaidCode += `  subgraph ${clusterId} [" ${escapeLabel(category)} "]\n`;
+                services.forEach(s => {
+                    const sid = sanitize(s.id);
+                    const sname = escapeLabel(s.name);
+                    let styleClass = 'noneNode';
+                    if (s.status === 'UP') styleClass = 'upNode';
+                    else if (s.status === 'DOWN') styleClass = 'downNode';
+                    
+                    const iconUrl = getServiceIconUrl(s);
+                    const iconHtml = iconUrl ? `<img src='${iconUrl}' width='20' height='20' style='vertical-align:middle;margin-right:5px'/>` : '';
+                    mermaidCode += `    ${sid}["${iconHtml}${sname}<br/>(${s.status})"]:::${styleClass}\n`;
+                });
+                mermaidCode += '  end\n\n';
+            });
+
+            filtered.forEach(s => {
+                if (s.depends_on && s.depends_on.length > 0) {
+                    const sid = sanitize(s.id);
+                    s.depends_on.forEach(depId => {
+                        // Only draw edge if both nodes are in the filtered set
+                        if (filteredIds.has(depId)) {
+                            // Reverse arrow: depId -> sid (Data flow from dependency to dependent)
+                            mermaidCode += `  ${sanitize(depId)} --> ${sid}\n`;
+                        }
+                    });
+                }
+            });
+
+            // Add click interactions
+            filtered.forEach(s => {
+                mermaidCode += `  click ${sanitize(s.id)} call handleMermaidClick("${sanitize(s.id)}")\n`;
+            });
+
+            graphContainer.removeAttribute('data-processed');
+            graphContainer.textContent = mermaidCode;
+            
+            try {
+                await mermaid.run({
+                    nodes: [graphContainer]
+                });
+            } catch (e) {
+                console.error("Mermaid render failed", e);
+            }
+        }
+
+        function showModal(serviceId) {
+            const service = servicesData.find(s => s.id === serviceId);
+            if (!service) return;
+
+            document.getElementById('modal-category').textContent = service.category;
+            document.getElementById('modal-title').textContent = service.name;
+            document.getElementById('modal-desc').innerHTML = marked.parse(service.description);
+            document.getElementById('modal-recovery').innerHTML = marked.parse(service.recovery);
+            document.getElementById('modal-message').textContent = service.message;
+            document.getElementById('modal-status').innerHTML = `
+                <div class="status-indicator ${service.status.toLowerCase()}">
+                    <span class="dot"></span>
+                    ${service.status}
+                </div>
+            `;
+
+            const depSection = document.getElementById('modal-dependencies-section');
+            const depContainer = document.getElementById('modal-dependencies');
+            if (service.depends_on && service.depends_on.length > 0) {
+                depSection.style.display = 'block';
+                depContainer.innerHTML = service.depends_on.map(depId => {
+                    const dep = servicesData.find(s => s.id === depId);
+                    return `<span class="dep-tag" onclick="showModal('${depId}')">${dep ? dep.name : depId}</span>`;
+                }).join('');
+            } else {
+                depSection.style.display = 'none';
+            }
+
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function jumpToService(serviceId, event) {
+            if (event) event.stopPropagation();
+            
+            // Switch to Grid view if not already
+            const gridTab = document.querySelector('[data-view="grid"]');
+            if (!gridTab.classList.contains('active')) {
+                gridTab.click();
+            }
+
+            // Reset filter to All if needed
+            if (currentFilter !== 'all') {
+                const allBtn = document.querySelector('[data-category="all"]');
+                if (allBtn) allBtn.click();
+            }
+
+            // Wait for render
+            setTimeout(() => {
+                const card = document.getElementById(`card-${serviceId}`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.classList.remove('highlight');
+                    void card.offsetWidth; // Trigger reflow
+                    card.classList.add('highlight');
+                }
+            }, 50);
+        }
+
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) closeModalBtn.onclick = closeModal;
+        
+        const modalOverlay = document.getElementById('modal');
+        if (modalOverlay) modalOverlay.onclick = (e) => {
+            if (e.target.id === 'modal') closeModal();
+        };
+
+        const searchInput = document.getElementById('search');
+        if (searchInput) searchInput.oninput = (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            renderServices();
+            renderMap();
+        };
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const viewId = `${btn.dataset.view}-view`;
+                const viewContent = document.getElementById(viewId);
+                if (viewContent) viewContent.classList.add('active');
+                
+                if (btn.dataset.view === 'map') {
+                    renderMap();
+                }
+            };
+        });
+
+        fetchStatus();
+        setInterval(fetchStatus, 60000);
+    </script>
+</body>
+</html>

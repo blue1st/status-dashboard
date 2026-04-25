@@ -1,0 +1,33 @@
+# GitLab CI/CD Example for Status Dashboard
+image: node:20
+
+stages:
+  - build
+  - deploy
+
+# Job to generate the status data
+generate:
+  stage: build
+  script:
+    - npm install
+    - npm run generate
+  artifacts:
+    paths:
+      - data/status.json
+    expire_in: 1 week
+
+# Job to deploy the dashboard to GitLab Pages
+pages:
+  stage: deploy
+  script:
+    - mkdir .public
+    - cp -r * .public
+    - mv .public public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+  # Optional: Schedule-only execution
+  # only:
+  #   - schedules

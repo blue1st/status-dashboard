@@ -1,0 +1,130 @@
+{
+  "services": [
+    {
+      "id": "web-app",
+      "name": "User Frontend",
+      "category": "Web",
+      "provider": "gcp",
+      "icon": "googlecloudrun",
+      "tags": [
+        "Product",
+        "React"
+      ],
+      "description": "The main user-facing web application running on **Cloud Run**.\n\nKey features:\n- High availability\n- Global reach",
+      "recovery": "1. Check Cloud Run revisions\n2. Verify traffic splitting\n3. Run `gcloud app logs read`",
+      "depends_on": [
+        "api-server"
+      ],
+      "status": "DOWN",
+      "message": "Failed to connect to https://example.com",
+      "lastCheck": "2026-04-25T15:35:49.160Z"
+    },
+    {
+      "id": "api-server",
+      "name": "Backend API",
+      "category": "Core",
+      "provider": "gcp",
+      "icon": "googlecloudspanner",
+      "tags": [
+        "NodeJS",
+        "API"
+      ],
+      "description": "Central business logic API.",
+      "recovery": "Check Spanner instance CPU and latency.",
+      "depends_on": [
+        "database",
+        "redis"
+      ],
+      "status": "UP",
+      "message": "Dummy check: UP",
+      "lastCheck": "2026-04-25T15:35:49.163Z"
+    },
+    {
+      "id": "database",
+      "name": "Spanner Database",
+      "category": "Backend",
+      "provider": "gcp",
+      "icon": "googlecloudspanner",
+      "tags": [
+        "Database",
+        "Internal"
+      ],
+      "description": "Primary database for user data.",
+      "recovery": "Check Spanner instance health.",
+      "depends_on": [],
+      "status": "UP",
+      "message": "Dummy check: UP",
+      "lastCheck": "2026-04-25T15:35:49.164Z"
+    },
+    {
+      "id": "storage",
+      "name": "Assets Storage (S3)",
+      "category": "Infrastructure",
+      "provider": "aws",
+      "icon": "amazons3",
+      "tags": [
+        "Storage",
+        "AWS"
+      ],
+      "description": "Static assets and uploads.",
+      "recovery": "Check S3 bucket permissions and lifecycle policies.",
+      "depends_on": [],
+      "status": "UP",
+      "message": "Dummy check: UP",
+      "lastCheck": "2026-04-25T15:35:49.166Z"
+    },
+    {
+      "id": "redis",
+      "name": "Cache Store (Redis)",
+      "category": "Backend",
+      "provider": "aws",
+      "icon": "redis",
+      "tags": [
+        "Cache",
+        "Internal"
+      ],
+      "description": "Session and data cache.",
+      "recovery": "Check ElastiCache metrics.",
+      "depends_on": [],
+      "status": "UP",
+      "message": "Dummy check: UP",
+      "lastCheck": "2026-04-25T15:35:49.168Z"
+    },
+    {
+      "id": "legacy-api",
+      "name": "Legacy API",
+      "category": "Web",
+      "provider": "github",
+      "icon": "github",
+      "tags": [
+        "Maintenance"
+      ],
+      "description": "API for legacy clients.",
+      "recovery": "Contact the SRE team immediately if this goes down.",
+      "depends_on": [
+        "database"
+      ],
+      "status": "NONE",
+      "message": "Dummy check: NONE (Skipped/Not Applicable)",
+      "lastCheck": "2026-04-25T15:35:49.169Z"
+    },
+    {
+      "id": "maintenance-db",
+      "name": "Backup Archive",
+      "category": "Backend",
+      "provider": "aws",
+      "icon": "amazons3",
+      "tags": [
+        "Archive",
+        "Long-term"
+      ],
+      "description": "Cold storage for old database backups. Not monitored in real-time.",
+      "recovery": "Contact infrastructure team for manual restore.",
+      "depends_on": [],
+      "status": "NONE",
+      "message": "No check configured",
+      "lastCheck": "2026-04-25T15:35:49.169Z"
+    }
+  ],
+  "updatedAt": "2026-04-25T15:35:49.169Z"
+}

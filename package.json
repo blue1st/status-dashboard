@@ -1,0 +1,17 @@
+{
+  "name": "status-dashboard",
+  "version": "1.0.0",
+  "description": "CI-driven static status dashboard",
+  "main": "generate.js",
+  "scripts": {
+    "generate": "node generate.js",
+    "dev": "npx http-server ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  }
+}
