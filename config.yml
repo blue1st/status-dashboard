@@ -3,8 +3,8 @@ services:
     name: User Frontend
     category: Web
     provider: gcp
-    icon: googlecloudrun
-    tags: ["Product", "React"]
+    icon: googlecloud
+    tags: ["Product", "React", "GCP"]
     description: "The main user-facing web application running on **Cloud Run**.\n\nKey features:\n- High availability\n- Global reach"
     recovery: "1. Check Cloud Run revisions\n2. Verify traffic splitting\n3. Run `gcloud app logs read`"
     depends_on: ["api-server"]
@@ -16,8 +16,8 @@ services:
     name: Backend API
     category: Core
     provider: gcp
-    icon: googlecloudspanner
-    tags: ["NodeJS", "API"]
+    icon: googlecloud
+    tags: ["NodeJS", "API", "GCP"]
     description: "Central business logic API."
     recovery: "Check Spanner instance CPU and latency."
     depends_on: ["database", "redis"]
@@ -30,7 +30,7 @@ services:
     category: Backend
     provider: gcp
     icon: googlecloudspanner
-    tags: ["Database", "Internal"]
+    tags: ["Database", "Internal", "GCP"]
     description: "Primary database for user data."
     recovery: "Check Spanner instance health."
     check:
@@ -40,8 +40,6 @@ services:
   - id: storage
     name: Assets Storage (S3)
     category: Infrastructure
-    provider: aws
-    icon: amazons3
     tags: ["Storage", "AWS"]
     description: "Static assets and uploads."
     recovery: "Check S3 bucket permissions and lifecycle policies."
@@ -52,9 +50,9 @@ services:
   - id: redis
     name: Cache Store (Redis)
     category: Backend
-    provider: aws
+    provider: gcp
     icon: redis
-    tags: ["Cache", "Internal"]
+    tags: ["Cache", "Internal", "GCP"]
     description: "Session and data cache."
     recovery: "Check ElastiCache metrics."
     check:
@@ -77,9 +75,7 @@ services:
   - id: maintenance-db
     name: Backup Archive
     category: Backend
-    provider: aws
-    icon: amazons3
-    tags: ["Archive", "Long-term"]
+    tags: ["Archive", "Long-term", "AWS"]
     description: "Cold storage for old database backups. Not monitored in real-time."
     recovery: "Contact infrastructure team for manual restore."
     # No check configured
