@@ -1,4 +1,4 @@
-# AI Skills for Status Dashboard
+# AI SKILL for Status Dashboard
 
 This document provides instructions and guidelines for AI coding assistants to maintain and extend the Status Dashboard project.
 
