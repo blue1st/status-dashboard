@@ -22,7 +22,7 @@ When asked to add or modify a service, update `config.yml` following this schema
   name: Friendly Name            # Display name
   category: Web | Core | Backend # Logical grouping
   provider: aws | gcp | github   # Cloud provider (affects color/branding)
-  icon: simpleicons-slug         # Icon slug from simpleicons.org
+  icon: simpleicons-slug         # Icon slug from simpleicons.org (e.g., 'mysql', 'redis', 'docker')
   tags: ["Tag1", "Tag2"]         # Optional tags for filtering
   description: "Markdown text"   # Detailed description of the service
   recovery: "Markdown text"      # Steps to take if the service is down
@@ -31,6 +31,21 @@ When asked to add or modify a service, update `config.yml` following this schema
     plugin: plugin_name.sh       # Script file name in plugins/ directory
     args: ["arg1", "arg2"]       # Arguments passed to the plugin
 ```
+
+### Icon Configuration
+
+The dashboard uses [Simple Icons](https://simpleicons.org/) for service icons. To find a valid slug:
+1.  Search for the brand on [simpleicons.org](https://simpleicons.org/).
+2.  The slug is usually the lowercase name of the brand (e.g., `Amazon S3` -> `amazons3`, `Google Cloud` -> `googlecloud`).
+3.  If a brand color is missing in `index.html`, it will default to a neutral gray.
+
+**Special Mappings**:
+The frontend automatically maps some common names to their official Simple Icons slugs:
+- `aws` -> `amazonaws`
+- `gcp` -> `googlecloud`
+- `s3` -> `amazonaws`
+- `spanner` -> `googlecloudspanner`
+- `cloudrun` -> `googlecloud`
 
 ---
 
@@ -85,7 +100,7 @@ When a user asks to "monitor a new service", follow these steps:
 -   **Execution**: When creating a new plugin, you MUST run `chmod +x` on it if the environment allows, or instruct the user to do so.
 -   **Pathing**: Plugins are always searched in the `plugins/` directory relative to the project root.
 -   **Markdown Support**: Both `description` and `recovery` fields in `config.yml` support GitHub Flavored Markdown. Use it to provide clear, actionable information.
--   **Icon Validation**: If unsure about a Simple Icon slug, prefer using a generic one like `server` or `cloud` rather than guessing.
+-   **Icon Validation**: Refer to the **Icon Configuration** section above for looking up slugs. If still unsure, prefer using a generic one like `server` or `cloud` rather than guessing.
 
 ---
 
